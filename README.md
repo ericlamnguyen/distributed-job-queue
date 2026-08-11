@@ -56,3 +56,12 @@ distributed-job-queue/
 ├── go.sum
 ├── README.md
 └── .gitignore
+```
+
+## Build Project
+```bash
+make check
+make tidy
+make test
+make build
+```
