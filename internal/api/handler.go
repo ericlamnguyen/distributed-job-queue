@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,7 +30,12 @@ func (h *Handler) CreateJob(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if strings.TrimSpace(request.Type) == "" {
+		http.Error(w, "type is required", http.StatusBadRequest)
 		return
 	}
 
@@ -43,12 +49,44 @@ func (h *Handler) CreateJob(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt: now,
 	}
 
-	err = h.repo.Create(newJob)
+	err = h.repo.Create(r.Context(), newJob)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to create job", http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(newJob)
+	writeJSON(w, http.StatusCreated, newJob)
+}
+
+func (h *Handler) GetJob(w http.ResponseWriter, r *http.Request) {
+	id := strings.TrimPrefix(r.URL.Path, "/jobs/")
+
+	if id == "" {
+		http.Error(w, "job ID is required", http.StatusBadRequest)
+		return
+	}
+
+	job, err := h.repo.Get(r.Context(), id)
+	if err != nil {
+		http.Error(w, "Job not found", http.StatusNotFound)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, job)
+}
+
+func (h *Handler) ListJobs(w http.ResponseWriter, r *http.Request) {
+	jobs, err := h.repo.List(r.Context())
+	if err != nil {
+		http.Error(w, "Failed to list jobs", http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, jobs)
+}
+
+func writeJSON(w http.ResponseWriter, status int, value any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(value)
 }

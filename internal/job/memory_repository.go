@@ -1,6 +1,7 @@
 package job
 
 import (
+	"context"
 	"errors"
 	"sync"
 )
@@ -16,7 +17,13 @@ func NewMemoryRepository() *MemoryRepository {
 	}
 }
 
-func (r *MemoryRepository) Create(job Job) error {
+func (r *MemoryRepository) Create(ctx context.Context, job Job) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -24,7 +31,13 @@ func (r *MemoryRepository) Create(job Job) error {
 	return nil
 }
 
-func (r *MemoryRepository) Get(id string) (Job, error) {
+func (r *MemoryRepository) Get(ctx context.Context, id string) (Job, error) {
+	select {
+	case <-ctx.Done():
+		return Job{}, ctx.Err()
+	default:
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -36,7 +49,13 @@ func (r *MemoryRepository) Get(id string) (Job, error) {
 	return job, nil
 }
 
-func (r *MemoryRepository) List() ([]Job, error) {
+func (r *MemoryRepository) List(ctx context.Context) ([]Job, error) {
+	select {
+	case <-ctx.Done():
+		return []Job{}, ctx.Err()
+	default:
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
