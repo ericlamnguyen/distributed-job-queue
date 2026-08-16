@@ -17,6 +17,10 @@ func main() {
 
 	ctx := context.Background()
 
+	if err := database.Migrate(cfg.DatabaseURL); err != nil {
+		log.Fatalf("Failed to migrate database: %v", err)
+	}
+
 	pool, err := database.NewPool(ctx, cfg.DatabaseURL)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)

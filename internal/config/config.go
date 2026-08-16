@@ -18,7 +18,7 @@ func Load() Config {
 
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
-		databaseURL = "postgres://jobqueue:jobqueue@localhost:5432/jobqueue" // default database URL for testing
+		databaseURL = "postgres://jobqueue:jobqueue@localhost:5432/jobqueue?sslmode=disable" // default database URL for testing
 	}
 
 	return Config{
