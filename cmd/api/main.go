@@ -1,15 +1,29 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/ericlamnguyen/distributed-job-queue/internal/api"
+	"github.com/ericlamnguyen/distributed-job-queue/internal/config"
+	"github.com/ericlamnguyen/distributed-job-queue/internal/database"
 	"github.com/ericlamnguyen/distributed-job-queue/internal/job"
 )
 
 func main() {
-	repo := job.NewMemoryRepository()
+	cfg := config.Load()
+
+	ctx := context.Background()
+
+	pool, err := database.NewPool(ctx, cfg.DatabaseURL)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+	defer pool.Close()
+
+	repo := job.NewPostgresRepository(pool)
 	handler := api.NewHandler(repo)
 
 	mux := http.NewServeMux()
@@ -34,8 +48,10 @@ func main() {
 		handler.GetJob(w, r)
 	})
 
-	log.Println("Starting server on :8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	addr := ":" + strconv.Itoa(cfg.Port)
+
+	log.Printf("Starting server on %s", addr)
+	if err := http.ListenAndServe(addr, mux); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
 }

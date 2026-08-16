@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/ericlamnguyen/distributed-job-queue/internal/job"
 )
 
@@ -27,7 +29,11 @@ func TestCreateJob(t *testing.T) {
 	handler.CreateJob(recorder, request)
 
 	if recorder.Code != http.StatusCreated {
-		t.Errorf("Expected status code %d, got %d", http.StatusCreated, recorder.Code)
+		t.Errorf(
+			"Expected status code %d, got %d",
+			http.StatusCreated,
+			recorder.Code,
+		)
 	}
 
 	var createdJob job.Job
@@ -36,19 +42,25 @@ func TestCreateJob(t *testing.T) {
 		t.Fatalf("Failed to decode response body: %v", err)
 	}
 
-	if createdJob.ID == "" {
+	if createdJob.ID == uuid.Nil {
 		t.Errorf("Expected job ID to be set, but it was empty")
 	}
 
-	if createdJob.Type != "email" || createdJob.Payload != "hello" {
-		t.Errorf("Unexpected job data: %+v", createdJob)
+	if createdJob.Type != "email" {
+		t.Errorf("Unexpected job type: %s", createdJob.Type)
 	}
 
-	if createdJob.Payload != "hello" {
-		t.Errorf("Unexpected job payload: %+v", createdJob)
+	var payload string
+
+	if err := json.Unmarshal(createdJob.Payload, &payload); err != nil {
+		t.Fatalf("Failed to decode job payload: %v", err)
+	}
+
+	if payload != "hello" {
+		t.Errorf("Unexpected job payload: %s", createdJob.Payload)
 	}
 
 	if createdJob.Status != "pending" {
-		t.Errorf("Unexpected job status: %+v", createdJob)
+		t.Errorf("Unexpected job status: %s", createdJob.Status)
 	}
 }

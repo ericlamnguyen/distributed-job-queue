@@ -4,16 +4,18 @@ import (
 	"context"
 	"errors"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 type MemoryRepository struct {
 	mu   sync.RWMutex
-	jobs map[string]Job
+	jobs map[uuid.UUID]Job
 }
 
 func NewMemoryRepository() *MemoryRepository {
 	return &MemoryRepository{
-		jobs: make(map[string]Job),
+		jobs: make(map[uuid.UUID]Job),
 	}
 }
 
@@ -31,7 +33,7 @@ func (r *MemoryRepository) Create(ctx context.Context, job Job) error {
 	return nil
 }
 
-func (r *MemoryRepository) Get(ctx context.Context, id string) (Job, error) {
+func (r *MemoryRepository) Get(ctx context.Context, id uuid.UUID) (Job, error) {
 	select {
 	case <-ctx.Done():
 		return Job{}, ctx.Err()

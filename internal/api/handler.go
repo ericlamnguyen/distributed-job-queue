@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -24,8 +25,8 @@ func NewHandler(repo job.Repository) *Handler {
 func (h *Handler) CreateJob(w http.ResponseWriter, r *http.Request) {
 
 	var request struct {
-		Type    string `json:"type"`
-		Payload string `json:"payload"`
+		Type    string          `json:"type"`
+		Payload json.RawMessage `json:"payload"`
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&request)
@@ -41,7 +42,7 @@ func (h *Handler) CreateJob(w http.ResponseWriter, r *http.Request) {
 
 	now := time.Now()
 	newJob := job.Job{
-		ID:        uuid.New().String(),
+		ID:        uuid.New(),
 		Type:      request.Type,
 		Payload:   request.Payload,
 		Status:    "pending",
@@ -51,6 +52,7 @@ func (h *Handler) CreateJob(w http.ResponseWriter, r *http.Request) {
 
 	err = h.repo.Create(r.Context(), newJob)
 	if err != nil {
+		log.Printf("failed to create job: %v", err)
 		http.Error(w, "Failed to create job", http.StatusInternalServerError)
 		return
 	}
@@ -66,8 +68,9 @@ func (h *Handler) GetJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, err := h.repo.Get(r.Context(), id)
+	job, err := h.repo.Get(r.Context(), uuid.MustParse(id))
 	if err != nil {
+		log.Printf("failed to get job: %v", err)
 		http.Error(w, "Job not found", http.StatusNotFound)
 		return
 	}
@@ -78,6 +81,7 @@ func (h *Handler) GetJob(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListJobs(w http.ResponseWriter, r *http.Request) {
 	jobs, err := h.repo.List(r.Context())
 	if err != nil {
+		log.Printf("failed to list jobs: %v", err)
 		http.Error(w, "Failed to list jobs", http.StatusInternalServerError)
 		return
 	}
