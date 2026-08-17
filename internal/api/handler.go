@@ -68,7 +68,13 @@ func (h *Handler) GetJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, err := h.repo.Get(r.Context(), uuid.MustParse(id))
+	jobID, err := uuid.Parse(id)
+	if err != nil {
+		http.Error(w, "Invalid job ID", http.StatusBadRequest)
+		return
+	}
+
+	job, err := h.repo.Get(r.Context(), jobID)
 	if err != nil {
 		log.Printf("failed to get job: %v", err)
 		http.Error(w, "Job not found", http.StatusNotFound)

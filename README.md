@@ -47,6 +47,7 @@ distributed-job-queue/
 ├── internal/
 │   ├── api/
 │   ├── config/
+│   ├── database/
 │   ├── job/
 │   └── worker/
 ├── migrations/
@@ -64,4 +65,10 @@ make check
 make tidy
 make test
 make build
+```
+
+## Run Project
+```bash
+make run-api
+make run-worker
 ```
