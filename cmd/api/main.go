@@ -13,9 +13,9 @@ import (
 )
 
 func main() {
-	cfg := config.Load()
-
 	ctx := context.Background()
+
+	cfg := config.Load()
 
 	if err := database.Migrate(cfg.DatabaseURL); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)

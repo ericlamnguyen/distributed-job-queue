@@ -45,7 +45,7 @@ func (h *Handler) CreateJob(w http.ResponseWriter, r *http.Request) {
 		ID:        uuid.New(),
 		Type:      request.Type,
 		Payload:   request.Payload,
-		Status:    "pending",
+		Status:    job.StatusPending,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}

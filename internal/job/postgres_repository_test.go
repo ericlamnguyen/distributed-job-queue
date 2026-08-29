@@ -39,7 +39,7 @@ func TestPostgresRepository_CreateAndGet(t *testing.T) {
 		ID:        uuid.New(),
 		Type:      "email",
 		Payload:   json.RawMessage(`{"to":"user@example.com","subject":"Welcome"}`),
-		Status:    "pending",
+		Status:    StatusPending,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
@@ -132,7 +132,7 @@ func TestPostgresRepository_List(t *testing.T) {
 			ID:        uuid.New(),
 			Type:      "email",
 			Payload:   json.RawMessage(`{"to":"user1@example.com"}`),
-			Status:    "pending",
+			Status:    StatusPending,
 			CreatedAt: now,
 			UpdatedAt: now,
 		},
@@ -140,7 +140,7 @@ func TestPostgresRepository_List(t *testing.T) {
 			ID:        uuid.New(),
 			Type:      "report",
 			Payload:   json.RawMessage(`{"format":"pdf"}`),
-			Status:    "pending",
+			Status:    StatusPending,
 			CreatedAt: now.Add(time.Second),
 			UpdatedAt: now.Add(time.Second),
 		},
@@ -177,6 +177,14 @@ func TestPostgresRepository_List(t *testing.T) {
 						"CreatedAt: expected %v, got %v",
 						expected.CreatedAt,
 						actual.CreatedAt,
+					)
+				}
+
+				if actual.Status != expected.Status {
+					t.Errorf(
+						"Status: expected %s, got %s",
+						expected.Status,
+						actual.Status,
 					)
 				}
 

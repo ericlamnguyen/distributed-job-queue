@@ -29,3 +29,9 @@ check: fmt lint
 
 clean:
 	rm -rf $(BINARY_DIR)
+
+create-job:
+	curl -X POST http://localhost:8080/jobs \
+		-H "Content-Type: application/json" \
+		-d '{"type":"email","payload":{"to":"user@example.com","subject":"Welcome"}}'
+		
