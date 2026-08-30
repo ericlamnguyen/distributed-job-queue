@@ -11,4 +11,5 @@ type Repository interface {
 	Get(ctx context.Context, id uuid.UUID) (Job, error)
 	List(ctx context.Context) ([]Job, error)
 	ClaimNextPendingJob(ctx context.Context) (Job, error)
+	UpdateStatus(ctx context.Context, id uuid.UUID, status Status) error
 }

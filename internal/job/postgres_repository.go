@@ -16,8 +16,6 @@ type PostgresRepository struct {
 // Ensure PostgresRepository implements the Repository interface
 var _ Repository = (*PostgresRepository)(nil)
 
-var ErrNoPendingJobs = errors.New("no pending jobs available")
-
 func NewPostgresRepository(pool *pgxpool.Pool) *PostgresRepository {
 	return &PostgresRepository{
 		pool: pool,
@@ -165,4 +163,16 @@ func (r *PostgresRepository) ClaimNextPendingJob(ctx context.Context) (Job, erro
 	}
 
 	return job, nil
+}
+
+func (r *PostgresRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status Status) error {
+	_, err := r.pool.Exec(ctx, `
+		UPDATE jobs
+		SET
+			status = $1,
+			updated_at = NOW()
+		WHERE id = $2
+	`, status, id)
+
+	return err
 }

@@ -2,10 +2,14 @@ package job
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+var ErrNoPendingJobs = errors.New("no pending jobs available")
+var ErrJobNotFound = errors.New("job not found")
 
 type Status string
 

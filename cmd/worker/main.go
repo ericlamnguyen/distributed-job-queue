@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/ericlamnguyen/distributed-job-queue/internal/config"
 	"github.com/ericlamnguyen/distributed-job-queue/internal/database"
@@ -31,11 +30,9 @@ func main() {
 
 	repo := job.NewPostgresRepository(pool)
 	handler := job.NewDefaultHandler()
-	worker := job.NewWorker(repo, handler, time.Second)
 
+	worker := job.NewWorker(repo, handler, cfg.WorkerPollForWorkInterval)
 	log.Println("worker started")
-
 	worker.Start(ctx)
-
 	log.Println("worker stopped")
 }

@@ -39,10 +39,10 @@ func TestWorker_ProcessNext(t *testing.T) {
 		t.Fatalf("failed to get job: %v", err)
 	}
 
-	if actual.Status != StatusProcessing {
+	if actual.Status != StatusCompleted {
 		t.Errorf(
 			"Status: expected %s, got %s",
-			StatusProcessing,
+			StatusCompleted,
 			actual.Status,
 		)
 	}

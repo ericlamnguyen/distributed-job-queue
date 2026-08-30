@@ -87,3 +87,20 @@ func (r *MemoryRepository) ClaimNextPendingJob(ctx context.Context) (Job, error)
 
 	return Job{}, ErrNoPendingJobs
 }
+
+func (r *MemoryRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status Status) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	job, exist := r.jobs[id]
+	if !exist {
+		return ErrJobNotFound
+	}
+
+	job.Status = status
+	job.UpdatedAt = time.Now().UTC()
+
+	r.jobs[id] = job
+
+	return nil
+}

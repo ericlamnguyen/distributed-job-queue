@@ -3,6 +3,7 @@ package job
 import (
 	"context"
 	"log"
+	"time"
 )
 
 type DefaultHandler struct{}
@@ -18,6 +19,9 @@ func (h *DefaultHandler) Handle(ctx context.Context, job Job) error {
 		job.Type,
 		job.Payload,
 	)
+
+	// sleep for 5 seconds to simulate job processing
+	time.Sleep(5 * time.Second)
 
 	return nil
 }

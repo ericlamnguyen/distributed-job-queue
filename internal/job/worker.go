@@ -40,6 +40,7 @@ func (w *Worker) processNextJob(ctx context.Context) {
 		if err == ErrNoPendingJobs {
 			return
 		}
+
 		log.Printf("failed to claim job: %v", err)
 		return
 	}
@@ -49,8 +50,23 @@ func (w *Worker) processNextJob(ctx context.Context) {
 	err = w.handler.Handle(ctx, job)
 	if err != nil {
 		log.Printf("failed to process job ID %s: %v", job.ID, err)
-		job.Status = StatusFailed
+
+		// Update the job status to failed
+		failStatusUpdateErr := w.repo.UpdateStatus(ctx, job.ID, StatusFailed)
+		if failStatusUpdateErr != nil {
+			log.Printf("failed to update job status to failed for job ID %s: %v", job.ID, failStatusUpdateErr)
+		}
+
+		return
 	}
 
-	log.Printf("Successfully processed job %s", job.ID)
+	// Update the job status to completed
+	successStatusUpdateErr := w.repo.UpdateStatus(ctx, job.ID, StatusCompleted)
+	if successStatusUpdateErr != nil {
+		log.Printf("failed to update job status to completed for job ID %s: %v", job.ID, successStatusUpdateErr)
+
+		return
+	}
+
+	log.Printf("Successfully processed job ID: %s", job.ID)
 }
