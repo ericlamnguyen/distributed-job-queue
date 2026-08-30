@@ -11,7 +11,7 @@ type Status string
 
 const (
 	StatusPending    Status = "pending"
-	StatusInProgress Status = "in_progress"
+	StatusProcessing Status = "processing"
 	StatusCompleted  Status = "completed"
 	StatusFailed     Status = "failed"
 )

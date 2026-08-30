@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -67,4 +68,22 @@ func (r *MemoryRepository) List(ctx context.Context) ([]Job, error) {
 	}
 
 	return jobs, nil
+}
+
+func (r *MemoryRepository) ClaimNextPendingJob(ctx context.Context) (Job, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	for id, job := range r.jobs {
+		if job.Status == StatusPending {
+			job.Status = StatusProcessing
+			job.UpdatedAt = time.Now().UTC()
+
+			r.jobs[id] = job
+
+			return job, nil
+		}
+	}
+
+	return Job{}, ErrNoPendingJobs
 }

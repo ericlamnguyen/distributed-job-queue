@@ -197,3 +197,70 @@ func TestPostgresRepository_List(t *testing.T) {
 		}
 	}
 }
+
+func TestPostgresRepository_ClaimNext(t *testing.T) {
+	ctx := context.Background()
+
+	cfg := config.Load()
+
+	pool, err := database.NewPool(ctx, cfg.DatabaseURL)
+	if err != nil {
+		t.Fatalf("failed to create database pool: %v", err)
+	}
+	defer pool.Close()
+
+	repo := NewPostgresRepository(pool)
+
+	defer func() {
+		_, err := pool.Exec(ctx, "DELETE FROM jobs")
+		if err != nil {
+			t.Errorf("failed to clean up jobs: %v", err)
+		}
+	}()
+
+	now := time.Now().UTC().Truncate(time.Microsecond)
+
+	expected := Job{
+		ID:        uuid.New(),
+		Type:      "email",
+		Payload:   json.RawMessage(`{"to":"user@example.com"}`),
+		Status:    StatusPending,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+
+	if err := repo.Create(ctx, expected); err != nil {
+		t.Fatalf("failed to create job: %v", err)
+	}
+
+	actual, err := repo.ClaimNextPendingJob(ctx)
+	if err != nil {
+		t.Fatalf("failed to claim job: %v", err)
+	}
+
+	if actual.ID != expected.ID {
+		t.Errorf("ID: expected %v, got %v", expected.ID, actual.ID)
+	}
+
+	if actual.Status != StatusProcessing {
+		t.Errorf(
+			"Status: expected %s, got %s",
+			StatusProcessing,
+			actual.Status,
+		)
+	}
+
+	// Verify that the job's status is updated in the database
+	stored, err := repo.Get(ctx, expected.ID)
+	if err != nil {
+		t.Fatalf("failed to get job: %v", err)
+	}
+
+	if stored.Status != StatusProcessing {
+		t.Errorf(
+			"Stored Status: expected %s, got %s",
+			StatusProcessing,
+			stored.Status,
+		)
+	}
+}

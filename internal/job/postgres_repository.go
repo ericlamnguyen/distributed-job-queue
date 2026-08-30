@@ -2,8 +2,10 @@ package job
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -11,7 +13,10 @@ type PostgresRepository struct {
 	pool *pgxpool.Pool
 }
 
+// Ensure PostgresRepository implements the Repository interface
 var _ Repository = (*PostgresRepository)(nil)
+
+var ErrNoPendingJobs = errors.New("no pending jobs available")
 
 func NewPostgresRepository(pool *pgxpool.Pool) *PostgresRepository {
 	return &PostgresRepository{
@@ -122,4 +127,42 @@ func (r *PostgresRepository) List(ctx context.Context) ([]Job, error) {
 	}
 
 	return jobs, nil
+}
+
+func (r *PostgresRepository) ClaimNextPendingJob(ctx context.Context) (Job, error) {
+	var job Job
+
+	err := r.pool.QueryRow(ctx, `
+		UPDATE jobs
+		SET
+			status = 'processing',
+			updated_at = NOW()
+		WHERE id = (
+			SELECT id
+			FROM jobs
+			WHERE status = 'pending'
+			ORDER BY created_at
+			FOR UPDATE SKIP LOCKED
+			LIMIT 1
+		)
+		RETURNING id, type, payload, status, created_at, updated_at
+	`,
+	).Scan(
+		&job.ID,
+		&job.Type,
+		&job.Payload,
+		&job.Status,
+		&job.CreatedAt,
+		&job.UpdatedAt,
+	)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Job{}, ErrNoPendingJobs
+	}
+
+	if err != nil {
+		return Job{}, err
+	}
+
+	return job, nil
 }
