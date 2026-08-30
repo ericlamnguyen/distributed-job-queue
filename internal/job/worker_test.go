@@ -29,7 +29,8 @@ func TestWorker_ProcessNext(t *testing.T) {
 		t.Fatalf("failed to create job: %v", err)
 	}
 
-	worker := NewWorker(repo, time.Second)
+	handler := NewDefaultHandler()
+	worker := NewWorker(repo, handler, time.Second)
 
 	worker.processNextJob(ctx)
 

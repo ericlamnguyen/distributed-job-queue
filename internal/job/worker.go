@@ -8,12 +8,14 @@ import (
 
 type Worker struct {
 	repo     Repository
+	handler  Handler
 	interval time.Duration
 }
 
-func NewWorker(repo Repository, interval time.Duration) *Worker {
+func NewWorker(repo Repository, handler Handler, interval time.Duration) *Worker {
 	return &Worker{
 		repo:     repo,
+		handler:  handler,
 		interval: interval,
 	}
 }
@@ -44,5 +46,11 @@ func (w *Worker) processNextJob(ctx context.Context) {
 
 	log.Printf("Processing job ID: %s, Type: %s", job.ID, job.Type)
 
-	// To be implemented: actual job processing logic based on job.Type and job.Payload
+	err = w.handler.Handle(ctx, job)
+	if err != nil {
+		log.Printf("failed to process job ID %s: %v", job.ID, err)
+		job.Status = StatusFailed
+	}
+
+	log.Printf("Successfully processed job %s", job.ID)
 }

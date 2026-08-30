@@ -30,8 +30,8 @@ func main() {
 	defer pool.Close()
 
 	repo := job.NewPostgresRepository(pool)
-
-	worker := job.NewWorker(repo, time.Second)
+	handler := job.NewDefaultHandler()
+	worker := job.NewWorker(repo, handler, time.Second)
 
 	log.Println("worker started")
 
