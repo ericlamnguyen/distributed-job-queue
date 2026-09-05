@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/ericlamnguyen/distributed-job-queue/internal/config"
@@ -13,6 +14,7 @@ import (
 )
 
 func main() {
+	// Create a context that is canceled on SIGINT or SIGTERM
 	ctx, stop := signal.NotifyContext(
 		context.Background(),
 		os.Interrupt,
@@ -31,8 +33,25 @@ func main() {
 	repo := job.NewPostgresRepository(pool)
 	handler := job.NewDefaultHandler()
 
-	worker := job.NewWorker(repo, handler, cfg.WorkerPollForWorkInterval)
-	log.Println("worker started")
-	worker.Start(ctx)
-	log.Println("worker stopped")
+	var wg sync.WaitGroup
+
+	log.Printf("Starting %d worker with poll interval %s", cfg.NumWorkers, cfg.WorkerPollForWorkInterval)
+	for i := 0; i < cfg.NumWorkers; i++ {
+		workerID := i + 1
+		worker := job.NewWorker(workerID, repo, handler, cfg.WorkerPollForWorkInterval)
+		wg.Add(1)
+
+		go func(id int) {
+			defer wg.Done()
+			worker.Start(ctx)
+		}(workerID)
+	}
+
+	// Wait until SIGINT or SIGTERM is received
+	<-ctx.Done()
+	log.Println("Shutting down workers...")
+
+	// Wait for all workers to finish
+	wg.Wait()
+	log.Println("All workers stopped")
 }

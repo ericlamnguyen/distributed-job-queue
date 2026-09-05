@@ -7,13 +7,15 @@ import (
 )
 
 type Worker struct {
+	id       int
 	repo     Repository
 	handler  Handler
 	interval time.Duration
 }
 
-func NewWorker(repo Repository, handler Handler, interval time.Duration) *Worker {
+func NewWorker(id int, repo Repository, handler Handler, interval time.Duration) *Worker {
 	return &Worker{
+		id:       id,
 		repo:     repo,
 		handler:  handler,
 		interval: interval,
@@ -21,12 +23,15 @@ func NewWorker(repo Repository, handler Handler, interval time.Duration) *Worker
 }
 
 func (w *Worker) Start(ctx context.Context) {
+	log.Printf("Worker %d started", w.id)
+
 	ticker := time.NewTicker(w.interval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
+			log.Printf("Worker %d stopped", w.id)
 			return
 		case <-ticker.C:
 			w.processNextJob(ctx)

@@ -31,7 +31,7 @@ func Load() Config {
 
 	numWorkers, err := strconv.Atoi(os.Getenv("NUM_WORKERS"))
 	if err != nil {
-		numWorkers = 1 // default number of workers
+		numWorkers = 3 // default number of workers
 	}
 
 	return Config{

@@ -30,7 +30,8 @@ func TestWorker_ProcessNext(t *testing.T) {
 	}
 
 	handler := NewDefaultHandler()
-	worker := NewWorker(repo, handler, time.Second)
+	workerId := 1
+	worker := NewWorker(workerId, repo, handler, time.Second)
 
 	worker.processNextJob(ctx)
 
