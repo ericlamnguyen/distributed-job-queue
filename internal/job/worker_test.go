@@ -33,7 +33,7 @@ func TestWorker_ProcessNext(t *testing.T) {
 	workerId := 1
 	worker := NewWorker(workerId, repo, handler, time.Second)
 
-	worker.processNextJob(ctx)
+	worker.ProcessNextJob(ctx)
 
 	actual, err := repo.Get(ctx, expected.ID)
 	if err != nil {

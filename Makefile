@@ -5,11 +5,13 @@ BINARY_DIR := bin
 fmt:
 	go fmt ./...
 
+lint:
+	go vet ./...
+
 tidy:
 	go mod tidy
 
-lint:
-	go vet ./...
+check: fmt lint tidy
 
 test:
 	go test ./...
@@ -19,16 +21,14 @@ build:
 	go build -o $(BINARY_DIR)/api ./cmd/api
 	go build -o $(BINARY_DIR)/worker ./cmd/worker
 
+clean:
+	rm -rf $(BINARY_DIR)
+
 run-api:
 	go run ./cmd/api
 
 run-worker:
 	go run ./cmd/worker
-
-check: fmt lint
-
-clean:
-	rm -rf $(BINARY_DIR)
 
 create-job:
 	curl -X POST http://localhost:8080/jobs \

@@ -34,12 +34,12 @@ func (w *Worker) Start(ctx context.Context) {
 			log.Printf("Worker %d stopped", w.id)
 			return
 		case <-ticker.C:
-			w.processNextJob(ctx)
+			w.ProcessNextJob(ctx)
 		}
 	}
 }
 
-func (w *Worker) processNextJob(ctx context.Context) {
+func (w *Worker) ProcessNextJob(ctx context.Context) {
 	job, err := w.repo.ClaimNextPendingJob(ctx)
 	if err != nil {
 		if err == ErrNoPendingJobs {
