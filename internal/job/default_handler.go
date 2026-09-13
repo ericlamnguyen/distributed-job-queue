@@ -3,6 +3,7 @@ package job
 import (
 	"context"
 	"log"
+	"math/rand"
 	"time"
 )
 
@@ -20,8 +21,9 @@ func (h *DefaultHandler) Handle(ctx context.Context, job Job) error {
 		job.Payload,
 	)
 
-	// sleep for 5 seconds to simulate job processing
-	time.Sleep(5 * time.Second)
+	// job processing logic here
+	// Simulate job processing time with a randon value between 1 and 3 seconds
+	time.Sleep(time.Duration(1+rand.Intn(3)) * time.Second)
 
 	return nil
 }

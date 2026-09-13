@@ -1,4 +1,4 @@
-.PHONY: fmt tidy lint test build run-api run-worker check clean
+.PHONY: fmt lint tidy check test build clean run-api run-worker create-job
 
 BINARY_DIR := bin
 
